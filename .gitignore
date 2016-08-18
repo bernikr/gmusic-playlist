@@ -3,3 +3,5 @@
 *.pyc
 
 !ExamplePlaylist.csv
+
+login_config.py

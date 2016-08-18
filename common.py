@@ -10,6 +10,7 @@ from gmusicapi import __version__ as gmusicapi_version
 from gmusicapi import Mobileclient
 from gmusicapi.exceptions import CallFailure
 from preferences import *
+import login_config
 import re
 import time
 import getpass
@@ -174,11 +175,14 @@ def create_details_string(details_dict, skip_id = False):
 def open_api():
     global api
     log('Logging into google music...')
-    # get the password each time so that it isn't stored in plain text
-    password = getpass.getpass(username + '\'s password: ')
-    
+
+    if login_config.password == '':
+        password = getpass.getpass(login_config.username + '\'s password: ')
+    else:
+        password = login_config.password
+
     api = Mobileclient()
-    if not api.login(username, password, Mobileclient.FROM_MAC_ADDRESS):
+    if not api.login(login_config.username, password, Mobileclient.FROM_MAC_ADDRESS):
         log('ERROR unable to login')
         time.sleep(3)
         exit()
@@ -217,7 +221,7 @@ def calculate_stats_results(stats,total_tracks):
     results['artists'] = Counter(stats['artists'])
     results['years'] = Counter(stats['years'])
     results['playback_ratio'] = stats['total_playcount']/float(total_tracks)
-    return results    
+    return results
 
 # logs the stats results
 def log_stats(results):

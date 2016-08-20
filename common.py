@@ -5,7 +5,9 @@ __version__ = '0.160530'
 
 __required_gmusicapi_version__ = '10.0.0'
 
+from builtins import str
 from collections import Counter
+from future.utils import iteritems
 from gmusicapi import __version__ as gmusicapi_version
 from gmusicapi import Mobileclient
 from gmusicapi.exceptions import CallFailure
@@ -69,9 +71,17 @@ def close_log():
 def log(message, nl = True):
     if nl:
         message += os.linesep
-    sys.stdout.write(message.encode(sys.stdout.encoding, errors='replace'))
+    message = message.encode('utf-8')
+    try:
+        sys.stdout.buffer.write(message)
+    except AttributeError:
+        sys.stdout.write(message)
+    sys.stdout.flush()
     if logfile:
-        logfile.write(message)
+        try:
+            logfile.write(message)
+        except TypeError:
+            logfile.write(message.decode('utf-8'))
 
 # logs a message if debug is true
 def dlog(message):
@@ -106,7 +116,7 @@ def get_google_track_details(sample_song = 'one u2'):
 # creates result details from the given track
 def create_result_details(track):
     result_details = {}
-    for key, value in track.iteritems():
+    for key, value in iteritems(track):
         result_details[key] = value
     result_details['songid'] = (track.get('storeId')
         if track.get('storeId') else track.get('id'))
@@ -165,7 +175,7 @@ def create_details_string(details_dict, skip_id = False):
         if len(out_string) != 0:
             out_string += track_info_separator
         try:
-            out_string += handle_quote_output(unicode(details_dict[nfo]))
+            out_string += handle_quote_output(str(details_dict[nfo]))
         except KeyError:
             # some songs don't have info like year, genre, etc
             pass
@@ -228,7 +238,7 @@ def log_stats(results):
     log(u'top 3 genres: '+repr(results['genres'].most_common(3)))
     log(u'top 3 artists: '+repr(results['artists'].most_common(3)))
     log(u'top 3 years: '+repr(results['years'].most_common(3)))
-    log(u'playlist playback ratio: '+unicode(results['playback_ratio']))
+    log(u'playlist playback ratio: '+str(results['playback_ratio']))
 
 # display version and check prerequisites
 log("gmusic-playlist: "+__version__)
